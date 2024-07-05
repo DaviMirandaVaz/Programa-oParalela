@@ -1,0 +1,409 @@
+//Bibliotecas
+#include<stdio.h>
+#include<omp.h>
+#include<stdlib.h>
+#include<time.h>
+#include<math.h>
+/*
+	Trabalho realizado por: Davi Miranda Vaz
+	Materia: Computa��o de alto desempenho
+	RA: 202111000029
+*/
+
+//Funcoes para filtro de numeros primos
+
+void testarnumeroprimoparalelo(){
+	clock_t inicio, fim;
+	unsigned long int tempo;
+	int num, aux, j;
+	system("cls");
+	printf("Ate que numero filtrar?\n");
+	scanf("%d", &num);
+	printf("Numeros primos encontrados:\n");
+
+	inicio = clock();
+
+	#pragma omp parallel for firstprivate(j) schedule(guided)
+		for(int i=2;i<num;i++){
+			aux = 0;
+			for(j=i;j>1;j--){
+				if(i == j){
+					continue;
+				}
+				if(i%j == 0){
+					aux = 1;
+					break;
+				}
+			}
+			if(aux != 1){
+				printf("%d ", i);
+			}
+		}
+	#pragma omp barrier
+		
+	fim = clock();
+	tempo = (fim - inicio)*1000/CLOCKS_PER_SEC;
+	printf("\ntempo: %lu milissegundos\n",tempo);
+	
+	
+	printf("\n");
+	system("pause>nul");
+}
+
+void testarnumeroprimonormal(){
+	clock_t inicio, fim;
+	unsigned long int tempo;
+	int num, aux;
+	system("cls");
+	printf("Ate que numero filtrar?\n");
+	scanf("%d", &num);
+	printf("Numeros primos encontrados:\n");
+	
+	inicio = clock();
+	
+	for(int i=2;i<num;i++){
+		aux = 0;
+		for(int j=i;j>1;j--){
+			if(i == j){
+				continue;
+			}
+			if(i%j == 0){
+				aux = 1;
+				break;
+			}
+		}
+		if(aux != 1){
+			printf("%d ", i);
+		}
+	}
+	
+	fim = clock();
+	tempo = (fim - inicio)*1000/CLOCKS_PER_SEC;
+	
+	printf("\ntempo: %lu milissegundos\n",tempo);
+		
+	printf("\n");
+	system("pause>nul");
+}
+
+//Funcoes para resolver baskara:
+
+
+void resolvebaskaranormal(){
+	int i, num;
+	clock_t inicio, fim;
+	unsigned long int tempo;
+	float delta, raiz, result;
+	printf("Quantos calculos seram feitos?\n");
+	scanf("%d", &num);
+
+	inicio = clock();
+
+
+	for(i = 0;i < num; i++){
+		int a, b, c, bq;
+		a = rand();
+		b = rand();
+		c = rand();
+		bq = b*b;
+		delta = bq-(4*a*c);
+		if(delta<0){
+		}else{
+			delta = sqrt(delta);
+			result = (-b-delta)/(2*a);
+			result = (-b+delta)/(2*a);
+		}
+	}
+
+
+	fim = clock();
+	tempo = (fim - inicio)*1000/CLOCKS_PER_SEC;
+	printf("\ntempo: %lu milissegundos\n",tempo);
+
+	system("pause>nul");
+	
+}
+
+
+void resolvebaskaraparalelo(){
+	int i, num;
+	int a, b, c, bq;
+	clock_t inicio, fim;
+	unsigned long int tempo;
+	float delta, raiz, result;
+	printf("Quantos calculos seram feitos?\n");
+	scanf("%d", &num);
+
+	inicio = clock();
+
+	#pragma omp parallel for schedule(static) num_threads(4)
+	for(i=0;i < num; i++){
+		a = rand()%100;
+		b = rand()%100;
+		c = rand()%100;
+		bq = b*b;
+		delta = bq-(4*a*c);
+		if(delta<0){
+		}else{
+			delta = sqrt(delta);
+			result = (-b-delta)/(2*a);
+			result = (-b+delta)/(2*a);
+		}
+	}
+
+	#pragma omp barrier
+
+	fim = clock();
+	tempo = (fim - inicio)*1000/CLOCKS_PER_SEC;
+	printf("\ntempo: %lu milissegundos\n",tempo);
+
+	system("pause>nul");
+	
+}
+
+//Função media notas
+
+void inicializa(int **v, int size) {
+	(*v) = (int *) malloc(sizeof(int)*size);
+
+	for (int i = 0; i < size; i++) {
+		(*v)[i] = rand() % 10;
+	}
+}
+
+void resolvemedianotasnormal(){
+	clock_t inicio, fim;
+	unsigned long int tempo;
+	int notas, i, num, a, b, *media, soma;
+	printf("Em quantas notas sera feita a media?\n");
+	scanf("%d", &num);
+
+	inicializa(&media, num);
+
+	inicio = clock();
+
+	for(i=0;i<num;i++){
+		soma += media[i];
+	}
+
+	soma = soma/num;
+
+	printf("A media e %d", soma);
+
+	fim = clock();
+	tempo = (fim - inicio)*1000/CLOCKS_PER_SEC;
+	printf("\ntempo: %lu milissegundos\n",tempo);
+
+
+
+	system("pause>nul");
+}
+
+void resolvemedianotasparalelo(){
+	clock_t inicio, fim;
+	unsigned long int tempo;
+	int notas, i, num, a, b, *media;
+	unsigned long soma;
+	printf("Em quantas notas sera feita a media?\n");
+	scanf("%d", &num);
+	inicializa(&media, num);
+
+	inicio = clock();
+
+	#pragma omp parallel for reduction(+:soma)
+
+	for(i=0;i<num;i++){
+		soma += media[i];
+	}
+
+	#pragma omp barrier
+
+	soma = soma / num;
+
+	printf("A media e %d", soma);
+
+
+	fim = clock();
+	tempo = (fim - inicio)*1000/CLOCKS_PER_SEC;
+	printf("\ntempo: %lu milissegundos\n",tempo);
+
+
+
+	system("pause>nul");
+}
+
+//Menus:
+
+
+// Menu Principal
+
+int menup(){ 
+	int op;
+	do{
+		system("cls");
+		printf("   MENU DE OPCOES \n");
+		printf("0. Sair do programa.\n");
+		printf("1. voltar ao menu principal.\n");
+		printf("2. Filtro numeros primos.\n");
+		printf("3. Calculo de baskara.\n");
+		printf("4. Media notas.\n");
+		printf("\nEscolha a opcao desejada:  \n");
+		scanf("%d", &op);
+		system("cls");
+		switch(op){
+			case 0:
+				return 0;
+			break;
+			case 1:
+				return op;
+			break;
+			case 2:
+				return op;
+			break;
+			case 3:
+				return op;
+			break;
+			case 4:
+				return op;
+			break;
+			case 5:
+				return op;
+			break;
+		}
+	}while(op != 1);
+	return op;
+}
+
+// Menu filtro primos
+
+int menuprimos(){
+	int op;
+	do{
+		system("cls");
+		printf("   MENU DOS NUMEROS PRIMOS \n");
+		printf("0. Sair do programa.\n");
+		printf("1. voltar ao menu principal.\n");
+		printf("2. Paralelo.\n");
+		printf("3. Normal.\n");
+		printf("\nEscolha a opcao desejada:  \n");
+		scanf("%d", &op);
+		system("cls");
+		switch(op){
+			case 0:
+				return 0;
+			break;
+			case 1:
+				return op;
+			break;
+			case 2:
+				return op;
+			break;
+			case 3:
+				return op;
+			break;
+		}
+	}while(op != 1);
+	return op;
+}
+
+// Menu baskara
+
+int menubaskara(){
+	int op;
+	do{
+		system("cls");
+		printf("   MENU DE BASKARA \n");
+		printf("0. Sair do programa.\n");
+		printf("1. voltar ao menu principal.\n");
+		printf("2. Paralelo.\n");
+		printf("3. Normal.\n");
+		printf("\nEscolha a opcao desejada:  \n");
+		scanf("%d", &op);
+		system("cls");
+		switch(op){
+			case 0:
+				return 0;
+			break;
+			case 1:
+				return op;
+			break;
+			case 2:
+				return op;
+			break;
+			case 3:
+				return op;
+			break;
+		}
+	}while(op != 1);
+	return op;
+}
+
+// Media notas
+
+int menunotas(){ 
+	int op;
+	do{
+		system("cls");
+		printf("   MENU DE MEDIA DE NOTAS \n");
+		printf("0. Sair do programa.\n");
+		printf("1. voltar ao menu principal.\n");
+		printf("2. Paralelo.\n");
+		printf("3. Normal.\n");
+		printf("\nEscolha a opcao desejada:  \n");
+		scanf("%d", &op);
+		system("cls");
+		switch(op){
+			case 0:
+				return 0;
+			break;
+			case 1:
+				return op;
+			break;
+			case 2:
+				return op;
+			break;
+			case 3:
+				return op;
+			break;
+		}
+	}while(op != 1);
+	return op;
+}
+
+
+int main(){
+	srand(time(0));
+	int op = 1;
+	while(op != 0){
+		if(op == 1){
+			op = menup();
+		}else if(op == 2){
+			op = menuprimos();
+			if(op == 2){
+				testarnumeroprimoparalelo();
+			}else if(op == 3){
+				testarnumeroprimonormal();
+				op = 2;
+			}
+		}else if(op == 3){
+			op = menubaskara();
+			if(op == 2){
+				resolvebaskaraparalelo();
+				op = 3;
+			}else if(op == 3){
+				resolvebaskaranormal();
+				op = 3;
+			}
+		}else if(op == 4){
+			op = menunotas();
+			if(op == 2){
+				resolvemedianotasparalelo();
+				op = 4;
+			}else if(op == 3){
+				resolvemedianotasnormal();
+				op = 4;
+			}
+		}
+	}
+	return 0;
+}
